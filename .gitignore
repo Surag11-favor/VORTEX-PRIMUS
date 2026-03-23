@@ -1,0 +1,22 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.restoreBackup
+release.properties
+dependency-reduced-pom.xml
+build_output.log
+
+# IDE
+.vscode/
+.classpath
+.project
+.settings/
+.apt_generated/
+bin/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

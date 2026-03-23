@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Fraud Intelligence &amp; Threat Analysis Platform</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --accent-blue: #3b82f6;
+            --accent-emerald: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.1), transparent 40%);
+            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar {
+            padding: 1.5rem 0;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #fff !important;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-brand i { margin-right: 10px; color: var(--accent-blue); }
+        .nav-link {
+            color: var(--text-muted) !important;
+            font-weight: 500;
+            margin: 0 1rem;
+            transition: color 0.3s;
+        }
+        .nav-link:hover { color: #fff !important; }
+        .btn-login {
+            color: #fff !important;
+            font-weight: 600;
+            margin-right: 1.5rem;
+        }
+        .btn-cta {
+            background: var(--accent-blue);
+            color: #fff !important;
+            font-weight: 700;
+            padding: 0.6rem 1.8rem;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+        .btn-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4); }
+
+        /* Hero Section */
+        .hero {
+            padding: 80px 0 80px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-desc {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            max-width: 850px;
+            margin: 0 auto 3rem;
+            line-height: 1.7;
+        }
+
+        /* Sections */
+        section {
+            padding: 100px 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .section-tag {
+            color: var(--accent-blue);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+        }
+
+        /* Glass Cards */
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 3rem;
+            height: 100%;
+            transition: all 0.3s;
+            text-align: left;
+        }
+        .feature-card:hover { 
+            transform: translateY(-10px); 
+            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(30, 41, 59, 0.9);
+        }
+        .icon-box {
+            width: 60px;
+            height: 60px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--accent-blue);
+            margin-bottom: 2rem;
+        }
+
+        /* Stats in Detection Section */
+        .detection-stat {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .detection-stat h3 { font-weight: 800; color: var(--accent-blue); margin: 0; }
+        .detection-stat p { margin: 0; color: var(--text-muted); font-size: 0.8rem; }
+
+        /* Contact Form */
+        .contact-form {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+        }
+        .form-control {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+        }
+        .form-control:focus {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: var(--accent-blue);
+            box-shadow: none;
+            color: #fff;
+        }
+
+        footer {
+            padding: 80px 0 40px;
+            margin-top: 0;
+            background: #000;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="bi bi-shield-lock-fill"></i> FRAUD INTEL
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list text-white fs-1"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="#detection">Detection</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#intel">Threat Intel</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#enterprise">Enterprise</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-login" href="/login">Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-cta" href="/login">Launch Platform</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+        <div class="container">
+            <span class="badge badge-pill bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3 fw-700">Enterprise-Grade Detection</span>
+            <h1>Detect. Analyze. Reduce.</h1>
+            <p class="hero-desc">
+                Proactive fraud intelligence for the modern enterprise. Deploy multi-layered detection algorithms to secure your infrastructure 
+                and protect your assets from sophisticated global threat actors.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/login" class="btn btn-cta btn-lg px-5">Get Started Now</a>
+                <a href="#detection" class="btn btn-outline-light btn-lg px-5 rounded-3">See How it Works</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Detection Section -->
+    <section id="detection">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <span class="section-tag">AI Scoring Engine</span>
+                    <h2 class="section-title">High-Performance Neural Detection</h2>
+                    <p class="text-muted mb-4 lead">Our engine processes millions of data points per second, assigning real-time risk scores to every transaction and payload entering your ecosystem.</p>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="detection-stat">
+                                <h3>< 20ms</h3>
+                                <p>Latency per scan</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="detection-stat">
+                                <h3>99.9%</h3>
+                                <p>Detection Accuracy</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 offset-lg-1">
+                    <div class="feature-card">
+                        <div class="icon-box"><i class="bi bi-cpu-fill"></i></div>
+                        <h4 class="fw-bold">Multi-Layer Analysis</h4>
+                        <p class="text-muted">From pattern matching to heuristic behavior analysis, we stop fraud at multiple levels before it hits your core database.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Threat Intel Section -->
+    <section id="intel" class="bg-dark bg-opacity-25">
+        <div class="container text-center">
+            <span class="section-tag">Threat Intel</span>
+            <h2 class="section-title">Global Threat Intelligence Feeds</h2>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-globe-americas fs-1 text-primary mb-3"></i>
+                        <h5 class="fw-bold">Honeypot Network</h5>
+                        <p class="text-muted small">Global honey-nets that identify new attack patterns 24 hours before they reach the general public.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-cloud-slash-fill fs-1 text-primary mb-3"></i>
+                        <h5 class="fw-bold">Zero-Day Protection</h5>
+                        <p class="text-muted small">Instantly block new exploits with our cloud-synchronized signature database.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-fingerprint fs-1 text-primary mb-3"></i>
+                        <h5 class="fw-bold">Actor Fingerprinting</h5>
+                        <p class="text-muted small">Identify persistent threat actors based on behavioral signatures rather than just IP addresses.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enterprise Section -->
+    <section id="enterprise">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-5">
+                    <div class="feature-card p-4">
+                        <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=800" alt="Cybersecurity" class="img-fluid rounded-4 mb-4">
+                        <h5 class="fw-bold">Enterprise Analytics</h5>
+                        <p class="text-muted small">Designed for scale. Seamlessly integrate with SEIM, SOAR, and cloud-native environments.</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 offset-lg-1">
+                    <span class="section-tag">Built for Scale</span>
+                    <h2 class="section-title">The Enterprise Choice for Fraud Reduction</h2>
+                    <ul class="list-unstyled">
+                        <li class="mb-4 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill text-success mt-1 me-3 fs-5"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Role-Based Access Control</h6>
+                                <p class="text-muted small">Granular permissions for investigators, admins, and auditors.</p>
+                            </div>
+                        </li>
+                        <li class="mb-4 d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill text-success mt-1 me-3 fs-5"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Audit-Ready Logging</h6>
+                                <p class="text-muted small">Immutable logs for compliance with GDPR, PCI-DSS, and SOC2.</p>
+                            </div>
+                        </li>
+                        <li class="d-flex align-items-start">
+                            <i class="bi bi-check-circle-fill text-success mt-1 me-3 fs-5"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Custom API Hooks</h6>
+                                <p class="text-muted small">Trigger localized mitigation scripts based on real-time risk level alerts.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <span class="section-tag">Get in Touch</span>
+                    <h2 class="section-title">Ready to reduce your fraud risk?</h2>
+                    <p class="text-muted lead mb-5">Talk to our security engineers about custom integration or enterprise pricing plans.</p>
+                    <div class="mb-4 d-flex align-items-center">
+                        <i class="bi bi-telephone-fill text-primary fs-3 me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-0">Call an Expert</h6>
+                            <p class="text-muted small mb-0">0558797183</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-envelope-fill text-primary fs-3 me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-0">Direct Engineering Support</h6>
+                            <p class="text-muted small mb-0">quamisuccess11@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="contact-form">
+                        <form>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" placeholder="Your Name">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="email" class="form-control" placeholder="Work Email">
+                                </div>
+                                <div class="col-12">
+                                    <input type="text" class="form-control" placeholder="Company Name">
+                                </div>
+                                <div class="col-12">
+                                    <textarea class="form-control" rows="4" placeholder="How can we help you?"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-cta w-100 py-3 mt-2">Send Inquiry</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="text-center">
+        <div class="container">
+            <div class="d-flex justify-content-center mb-4">
+                <a class="navbar-brand m-0" href="#">
+                    <i class="bi bi-shield-lock-fill"></i> ENTERPRISE FRAUD INTELLIGENCE
+                </a>
+            </div>
+            <p class="text-muted small mb-0">&copy; 2026 FRAUD INTEL PLATFORM. SECURE DATA ANALYSIS.</p>
+            <p class="text-muted extra-small mt-2">Platform accessible everywhere via authorized secure links.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

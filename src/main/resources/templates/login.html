@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Enterprise Fraud Intelligence</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --primary-color: #3b82f6;
+            --secondary-color: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.1), transparent 40%);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .login-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-control {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+        }
+
+        .form-control:focus {
+            background-color: rgba(15, 23, 42, 0.8);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+            color: #fff;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4);
+        }
+
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-glass">
+        <div class="text-center mb-4">
+            <i class="bi bi-shield-lock-fill logo-icon"></i>
+            <h3 class="fw-bold">EFI Platform</h3>
+            <p class="text-muted small">Enterprise Fraud Intelligence &amp; Threat Analysis</p>
+        </div>
+
+        <div th:if="${param.error}" class="alert alert-danger p-2 small text-center rounded-3 bg-danger bg-opacity-10 border border-danger text-danger">
+            Invalid username or password.
+        </div>
+
+        <div th:if="${param.logout}" class="alert alert-success p-2 small text-center rounded-3 bg-success bg-opacity-10 border border-success text-success">
+            You have been logged out.
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="mb-3">
+                <label for="username" class="form-label small fw-semibold text-muted">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 border-light border-opacity-10 text-muted"><i class="bi bi-person"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" id="username" name="username" placeholder="Enter admin" required autofocus>
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <div class="d-flex justify-content-between">
+                    <label for="password" class="form-label small fw-semibold text-muted">Password</label>
+                </div>
+                <div class="input-group" id="show_hide_password">
+                    <span class="input-group-text bg-transparent border-end-0 border-light border-opacity-10 text-muted"><i class="bi bi-key"></i></span>
+                    <input type="password" class="form-control border-start-0 ps-0" id="password" name="password" placeholder="Enter admin123" required>
+                    <a href="" class="input-group-text bg-transparent border-light border-opacity-10 text-muted text-decoration-none"><i class="bi bi-eye-slash" aria-hidden="true"></i></a>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-3">Sign In Securely</button>
+            <p class="text-center small text-muted mt-4">System restricted to authorized personnel only.</p>
+        </form>
+    </div>
+
+    <!-- Script to toggle password visibility -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#show_hide_password a").on('click', function(event) {
+                event.preventDefault();
+                if($('#show_hide_password input').attr("type") == "text"){
+                    $('#show_hide_password input').attr('type', 'password');
+                    $('#show_hide_password i').addClass( "bi-eye-slash" );
+                    $('#show_hide_password i').removeClass( "bi-eye" );
+                }else if($('#show_hide_password input').attr("type") == "password"){
+                    $('#show_hide_password input').attr('type', 'text');
+                    $('#show_hide_password i').removeClass( "bi-eye-slash" );
+                    $('#show_hide_password i').addClass( "bi-eye" );
+                }
+            });
+        });
+    </script>
+</body>
+</html>
