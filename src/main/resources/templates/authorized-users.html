@@ -2,21 +2,88 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Authorized Users - Enterprise Fraud Intelligence</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorized Users | Fraud Intelligence</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #0f172a; color: #e2e8f0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        .container { margin-top: 100px; text-align: center; }
-        .glass-panel { background: rgba(30, 41, 59, 0.7); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        :root {
+            --bg-dark: #0f172a;
+            --sidebar-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Plus Jakarta Sans', sans-serif; display: flex; }
+        .sidebar { width: 280px; background: var(--sidebar-bg); border-right: 1px solid var(--glass-border); position: fixed; height: 100vh; }
+        .main-content { margin-left: 280px; flex-grow: 1; padding: 2rem; }
+        .nav-link { display: flex; align-items: center; padding: 0.8rem 1.2rem; color: var(--text-muted) !important; border-radius: 12px; margin-bottom: 0.5rem; transition: all 0.3s; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background: rgba(59, 130, 246, 0.1); color: #fff !important; }
+        .nav-link.active { background: var(--accent-blue); color: #fff !important; }
+        .glass-panel { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 2rem; }
+        .user-avatar { width: 40px; height: 40px; background: var(--accent-blue); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; }
+        .table { color: var(--text-main); }
+        .table td { border-bottom: 1px solid var(--glass-border); vertical-align: middle; padding: 1.25rem 0.5rem; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="glass-panel">
-            <h1>Authorized User Access</h1>
-            <p class="text-muted">Manage system administrators and investigator roles here.</p>
-            <a href="/dashboard" class="btn btn-primary mt-3">Back to Dashboard</a>
+    <aside class="sidebar">
+        <div class="p-4 border-bottom border-secondary mb-3">
+            <a href="/dashboard" class="text-white text-decoration-none fw-800 d-flex align-items-center">
+                <i class="bi bi-shield-lock-fill me-2 text-primary"></i> FRAUD INTEL
+            </a>
         </div>
-    </div>
+        <nav class="px-3">
+            <a href="/dashboard" class="nav-link"><i class="bi bi-grid-fill me-2"></i> Overview</a>
+            <a href="/threat-scan" class="nav-link"><i class="bi bi-eye-fill me-2"></i> Threat Scan</a>
+            <a href="/mitigation-rules" class="nav-link"><i class="bi bi-shield-shaded me-2"></i> Mitigation Rules</a>
+            <a href="/authorized-users" class="nav-link active"><i class="bi bi-people-fill me-2"></i> Authorized Users</a>
+            <a href="/audit-logs" class="nav-link"><i class="bi bi-journal-text me-2"></i> Audit Logs</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-800">Investigator Access Control</h2>
+                <p class="text-muted">Manage system administrators and authorized analysts.</p>
+            </div>
+            <button class="btn btn-outline-light rounded-pill px-4 fw-bold"><i class="bi bi-person-plus-fill me-2"></i> Invite User</button>
+        </div>
+
+        <div class="glass-panel">
+            <table class="table">
+                <thead>
+                    <tr class="text-muted small uppercase">
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>ID</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-3" th:text="${#strings.substring(u.username,0,1).toUpperCase()}">A</div>
+                                <div>
+                                    <div class="fw-700" th:text="${u.username}">admin</div>
+                                    <div class="text-muted small">Active Session</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge border border-primary text-primary" th:text="${u.role}">ROLE_ADMIN</span></td>
+                        <td class="text-muted font-monospace" th:text="${u.id}">1</td>
+                        <td><span class="text-success small fw-700"><i class="bi bi-circle-fill me-1" style="font-size: 0.5rem;"></i> Online</span></td>
+                        <td><button class="btn btn-sm btn-link text-muted p-0"><i class="bi bi-three-dots-vertical"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
 </body>
 </html>
