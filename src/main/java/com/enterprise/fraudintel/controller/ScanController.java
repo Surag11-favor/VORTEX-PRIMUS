@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import com.enterprise.fraudintel.service.ScanService;
 
 @RestController
 @RequestMapping("/api/analysis")
@@ -20,58 +20,25 @@ public class ScanController {
 
     private final ScanResultRepository scanResultRepository;
     private final AuditLogRepository auditLogRepository;
+    private final ScanService scanService;
 
-    public ScanController(ScanResultRepository scanResultRepository, AuditLogRepository auditLogRepository) {
+    public ScanController(ScanResultRepository scanResultRepository, AuditLogRepository auditLogRepository, ScanService scanService) {
         this.scanResultRepository = scanResultRepository;
         this.auditLogRepository = auditLogRepository;
+        this.scanService = scanService;
     }
 
     @PostMapping("/scan")
     public Map<String, Object> runScan(@RequestBody Map<String, String> request, Principal principal) {
         String content = request.get("content");
         
-        String riskLevel;
-        double riskScore;
-        String sentiment;
-        String summary;
-
-        if (content == null || content.trim().isEmpty()) {
-            riskLevel = "LOW";
-            riskScore = 0.0;
-            sentiment = "Neutral";
-            summary = "Empty payload provided.";
-        } else {
-            String url = content.trim().toLowerCase();
-            
-            // 1. Check if URL starts with https
-            if (!url.startsWith("https")) {
-                riskLevel = "HIGH";
-                riskScore = 95.0;
-                sentiment = "Highly Suspicious";
-                summary = "URL does not use secure HTTPS. Flagged as HIGH RISK.";
-            } 
-            // 2. Check length (>50 chars) or multiple hyphens
-            else if (url.length() > 50 || url.split("-").length - 1 > 1) {
-                riskLevel = "MEDIUM"; // Considered SUSPICIOUS
-                riskScore = 65.0;
-                sentiment = "Negative";
-                summary = "URL is excessively long or contains multiple hyphens. Flagged as SUSPICIOUS.";
-            } 
-            // 3. Known clean domains
-            else if (url.contains("google.com") || url.contains("railway.app")) {
-                riskLevel = "LOW";
-                riskScore = 5.0;
-                sentiment = "Positive";
-                summary = "Domain matches known safe entity. Marked as TRUSTED.";
-            } 
-            // 4. Default fallback
-            else {
-                riskLevel = "LOW";
-                riskScore = 20.0;
-                sentiment = "Neutral";
-                summary = "Standard URL verified. No immediate threats detected.";
-            }
-        }
+        // Delegate to ScanService for actual detection
+        Map<String, Object> analysisResult = scanService.analyzeUrl(content);
+        
+        String riskLevel = (String) analysisResult.get("riskLevel");
+        double riskScore = (Double) analysisResult.get("riskScore");
+        String sentiment = (String) analysisResult.get("sentiment");
+        String summary = (String) analysisResult.get("summary");
         
         // Persist Result
         ScanResult result = new ScanResult();
@@ -88,12 +55,8 @@ public class ScanController {
         log.setDetails("Scanned URL: " + (content != null && content.length() > 30 ? content.substring(0, 30) + "..." : content));
         auditLogRepository.save(log);
         
-        Map<String, Object> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>(analysisResult);
         response.put("status", "success");
-        response.put("riskScore", riskScore);
-        response.put("riskLevel", riskLevel);
-        response.put("sentiment", sentiment);
-        response.put("summary", summary);
         
         return response;
     }
