@@ -21,12 +21,6 @@ public class ScanService {
         this.auditLogRepository = auditLogRepository;
     }
 
-    // High-Trust Brands to protect against Typosquatting
-    private static final Set<String> TRUSTED_BRANDS = Set.of(
-        "google", "microsoft", "apple", "amazon", "facebook", "netflix", 
-        "paypal", "chase", "bankofamerica", "wellsfargo", "railway", "github"
-    );
-
     // Suspicious TLDs commonly used in phishing
     private static final Set<String> SUSPICIOUS_TLDS = Set.of(
         "xyz", "top", "tk", "ml", "ga", "cf", "gq", "bid", "pw", "buzz", "click", "rest", "cam"
@@ -62,50 +56,30 @@ public class ScanService {
         // 0. Shortener Detection (Cloaking Warning)
         for (String shortener : SHORTENER_DOMAINS) {
             if (url.contains(shortener)) {
-                totalScore += 25.0;
-                findings.add("URL Shortener detected (Cloaking risk)");
+                totalScore += 15.0; // Reduced penalty
+                findings.add("URL Shortener detected (Cloaking context)");
                 break;
             }
         }
 
         // 1. Protocol Layer
         if (!url.startsWith("https://")) {
-            totalScore += 40.0;
-            findings.add("Non-HTTPS protocol (Unsecured)");
+            totalScore += 30.0; // Reduced penalty
+            findings.add("Non-HTTPS protocol (Unsecured transit)");
         }
 
         try {
             URL parsedUrl = new URL(url.startsWith("http") ? url : "https://" + url);
             String host = parsedUrl.getHost();
-            String path = parsedUrl.getPath();
             
             String[] parts = host.split("\\.");
             String domain = parts.length >= 2 ? parts[parts.length - 2] : host;
             String tld = parts.length >= 1 ? parts[parts.length - 1] : "";
 
-            // 2. High-Trust Brand Recognition
-            boolean isProfessionalTrusted = false;
-            for (String brand : TRUSTED_BRANDS) {
-                if (host.equals(brand + ".com") || host.endsWith("." + brand + ".com")) {
-                    isProfessionalTrusted = true;
-                    break;
-                }
-            }
-            if (isProfessionalTrusted) return buildResponse("LOW", 5.0, "Positive", "Verified high-trust entity.");
-
-            // 3. Typosquatting
-            for (String brand : TRUSTED_BRANDS) {
-                if (calculateLevenshteinDistance(domain, brand) == 1) {
-                    totalScore += 50.0;
-                    findings.add("Potential Typosquatting detected");
-                    break;
-                }
-            }
-
-            // 4. Entropy & TLD Reputation
-            if (calculateEntropy(domain) > 3.5) {
-                totalScore += 30.0;
-                findings.add("High Entropy Domain");
+            // 2. Entropy & TLD Reputation
+            if (calculateEntropy(domain) > 4.2) { // Increased threshold to avoid normal random names
+                totalScore += 20.0;
+                findings.add("High Entropy Domain Name");
             }
             if (SUSPICIOUS_TLDS.contains(tld)) {
                 totalScore += 25.0;
@@ -113,46 +87,62 @@ public class ScanService {
                 for (String brand : SOCIAL_MEDIA_BRANDS) {
                     if (domain.contains(brand)) {
                         totalScore += 30.0;
-                        findings.add("Social Media Phishing pattern");
+                        findings.add("Social Media Phishing pattern in Domain");
                         break;
                     }
                 }
             }
 
-            // 5. Deep Content Analysis (The "All Files" Request)
+            // 3. Deep Content Analysis (The "All Files" Request)
             String pageContent = fetchPageContent(url);
             if (pageContent != null && !pageContent.isEmpty()) {
-                // Heuristic: Hidden Iframes (Common in drive-by downloads)
-                if (pageContent.contains("<iframe") && (pageContent.contains("visibility:hidden") || pageContent.contains("display:none"))) {
-                    totalScore += 40.0;
-                    findings.add("Deep Scan: Hidden iframes detected (Drive-by potential)");
-                }
-
-                // Heuristic: Malicious script patterns (Simple obfuscation check)
+                
+                // Heuristic: Malicious script patterns or heavy obfuscation
                 if (pageContent.contains("eval(unescape(") || pageContent.contains("document.write(unescape(")) {
-                    totalScore += 50.0;
+                    totalScore += 45.0;
                     findings.add("Deep Scan: Malicious script obfuscation detected");
                 }
+                
+                // Heuristic: Suspicious External Iframes/Scripts
+                boolean hasSuspiciousExternalSource = false;
+                for (String susTld : SUSPICIOUS_TLDS) {
+                    if (pageContent.matches(".*<(iframe|script)[^>]+src=[\"'].*\\." + susTld + "[\"'].*")) {
+                        hasSuspiciousExternalSource = true;
+                        break;
+                    }
+                }
+                if (hasSuspiciousExternalSource) {
+                    totalScore += 40.0;
+                    findings.add("Deep Scan: Suspicious external payload integration");
+                }
 
-                // Heuristic: Phishing Form Detection
+                // Heuristic: Phishing Form Detection (Only flag if posting externally)
                 if (pageContent.contains("<form") && (pageContent.contains("password") || pageContent.contains("creditcard") || pageContent.contains("ssn"))) {
-                    totalScore += 35.0;
-                    findings.add("Deep Scan: Credential harvesting form detected");
+                    // Simple check if form action contains a different absolute URL
+                    if (pageContent.matches(".*<form[^>]+action=[\"']https?://.*") && !pageContent.contains("action=\"" + (url.startsWith("https") ? "https" : "http") + "://" + host)) {
+                        totalScore += 40.0;
+                        findings.add("Deep Scan: External Credential Harvesting form detected");
+                    }
                 }
 
                 // Social Scam Content Matching
                 long contentScamMatches = SOCIAL_SCAM_KEYWORDS.stream().filter(pageContent::contains).count();
-                if (contentScamMatches > 0) {
+                if (contentScamMatches > 3) { // Require high density (e.g. at least 4 keywords)
+                    totalScore += (10.0 * contentScamMatches);
+                    findings.add("Deep Scan: High density of Social Scam keywords (" + contentScamMatches + ")");
+                } else if (contentScamMatches > 0 && SUSPICIOUS_TLDS.contains(tld)) {
+                    // Or if it's already a shady domain, be stricter
                     totalScore += (15.0 * contentScamMatches);
-                    findings.add("Deep Scan: Social Scam keywords in page content (" + contentScamMatches + ")");
+                    findings.add("Deep Scan: Social Scam keywords on suspicious domain (" + contentScamMatches + ")");
                 }
-            } else if (totalScore > 10) {
-                totalScore += 15.0; // Bonus risk if we can't scrape a suspicious link
-                findings.add("Deep Scan: Target content unreachable (Hostile/Ephemeral cloaked link)");
+
+            } else if (totalScore > 20) {
+                totalScore += 15.0; 
+                findings.add("Deep Scan: Target content unreachable on a suspicious link (Evasion)");
             }
 
         } catch (Exception e) {
-            return buildResponse("HIGH", 95.0, "Highly Suspicious", "Deep Analysis Failure: Targeted payload likely malicious. Flagged as HIGH RISK.");
+            return buildResponse("HIGH", 95.0, "Highly Suspicious", "Deep Analysis Failure: Targeted payload severely malformed or hostile.");
         }
 
         // Final Aggregation
@@ -185,6 +175,8 @@ public class ScanService {
     }
 
     private void applyMitigationRules(String actionLabel, String url, String reason) {
+        if (ruleRepository == null || auditLogRepository == null) return; // Prevent NPEs during isolated heuristic testing
+
         List<MitigationRule> activeRules = ruleRepository.findAll().stream()
             .filter(MitigationRule::isEnabled)
             .filter(r -> r.getAction().equalsIgnoreCase(actionLabel))
