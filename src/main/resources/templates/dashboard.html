@@ -3,156 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cyber-Command | Threat Intelligence Platform</title>
+    <title>Dashboard | CYBER-COMMAND</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/cyber-command.css}">
-    <style>
-        /* Page-specific styles only — responsive handled by cyber-command.css */
-    </style>
 </head>
 <body>
-    <!-- Sidebar -->
+
+    <div class="hud-background"></div>
+    <div class="data-stream"></div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Ultramodern Sidebar -->
     <aside class="cyber-sidebar" id="sidebar">
-        <div class="p-4 border-bottom border-secondary border-opacity-25 mb-3">
-            <a href="/dashboard" class="text-white text-decoration-none fw-800 d-flex align-items-center">
-                <i class="bi bi-shield-lock-fill me-2 fs-4 text-primary"></i> 
-                <span>CYBER <span class="text-primary text-opacity-75">COMMAND</span></span>
+        <div class="p-4 mb-4">
+            <a class="navbar-brand fw-900 text-uppercase d-flex align-items-center gap-2" href="/" style="color: var(--cyber-cyan); font-size: 1.2rem; text-decoration: none;">
+                <i class="bi bi-shield-lock-fill fs-3"></i> CYBER-COMMAND
             </a>
         </div>
-        <nav class="px-2">
-            <a href="/dashboard" class="nav-link-cyber active"><i class="bi bi-grid-fill me-3"></i> Overview</a>
-            <a href="/threat-scan" class="nav-link-cyber"><i class="bi bi-eye-fill me-3"></i> Threat Scan</a>
-            <a href="/mitigation-rules" class="nav-link-cyber"><i class="bi bi-shield-shaded me-3"></i> Mitigation Rules</a>
-            <a href="/authorized-users" class="nav-link-cyber"><i class="bi bi-people-fill me-3"></i> Authorized Users</a>
-            <a href="/audit-logs" class="nav-link-cyber"><i class="bi bi-journal-text me-3"></i> Audit Logs</a>
-        </nav>
         
-        <div class="mt-auto p-4 border-top border-secondary border-opacity-10">
-            <div class="d-flex align-items-center">
-                <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3 pulse-emerald">
-                    <i class="bi bi-cpu text-success"></i>
-                </div>
-                <div>
-                    <div class="small fw-bold text-white">System Guard</div>
-                    <div class="text-muted" style="font-size: 0.7rem;">Neural Core: Active</div>
-                </div>
+        <nav class="flex-grow-1">
+            <a th:href="@{/dashboard}" class="nav-link-extra active"><i class="bi bi-cpu me-3"></i> Neural Console</a>
+            <a th:href="@{/threat-scan}" class="nav-link-extra"><i class="bi bi-radar me-3"></i> Threat Radar</a>
+            <a th:href="@{/mitigation-rules}" class="nav-link-extra"><i class="bi bi-shield-exclamation me-3"></i> Active Defense</a>
+            <a th:href="@{/authorized-users}" class="nav-link-extra"><i class="bi bi-people me-3"></i> Operator Registry</a>
+            <a th:href="@{/audit-logs}" class="nav-link-extra"><i class="bi bi-journal-text me-3"></i> System Audit</a>
+        </nav>
+
+        <div class="p-4 border-top border-secondary border-opacity-25">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-info" style="width: 10px; height: 10px; box-shadow: 0 0 10px var(--cyber-cyan);"></div>
+                <span class="mono extra-small opacity-50" sec:authentication="name">SYS_ADMIN</span>
             </div>
-            <form th:action="@{/logout}" method="post" class="mt-4">
-                <button type="submit" class="btn btn-link text-muted text-decoration-none small p-0 fw-bold">
-                    <i class="bi bi-box-arrow-right me-2"></i> TERMINATE SESSION
-                </button>
+            <form th:action="@{/logout}" method="post" class="mt-3">
+                <button type="submit" class="btn btn-outline-danger w-100 rounded-3 py-2 fw-bold small">TERMINATE_SESSION</button>
             </form>
         </div>
     </aside>
 
-    <!-- Sidebar overlay for mobile -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <main class="main-wrap" style="margin-left: var(--sidebar-width); min-height: 100vh; padding: 2rem;">
+        
+        <!-- Mobile Toggle -->
+        <button class="sidebar-toggle mb-4 d-lg-none btn border-0 text-info" id="sidebarToggle">
+            <i class="bi bi-list fs-1"></i>
+        </button>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-5">
+        <header class="d-flex justify-content-between align-items-center mb-5">
             <div>
-                <h2 class="fw-800 mb-1">Security Command Center</h2>
-                <p class="text-muted small mb-0">Multi-layer heuristic orchestration and threat mitigation.</p>
+                <span class="mono extra-small text-info opacity-75">SESSION://CYBER_COMMAND_ROOT</span>
+                <h2 class="fw-800 m-0">Neural Intelligence Console</h2>
             </div>
-            <div class="d-flex gap-3 align-items-center">
-                <button class="btn sidebar-toggle text-white fs-3"><i class="bi bi-list"></i></button>
-                <div class="glass-card py-2 px-3 d-flex align-items-center gap-2" style="padding: 0.5rem 1rem !important; border-radius: 12px;">
-                    <span class="badge bg-primary bg-opacity-25 text-primary rounded-pill p-1"><i class="bi bi-clock"></i></span>
-                    <span class="small fw-bold" id="liveTime">00:00:00</span>
-                </div>
-                <div class="dropdown">
-                    <div class="glass-card p-2 d-flex align-items-center gap-2 cursor-pointer" style="padding: 0.4rem !important; border-radius: 12px;" data-bs-toggle="dropdown">
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                            <i class="bi bi-person-fill text-white"></i>
-                        </div>
-                        <span class="small fw-bold me-2" sec:authentication="name">Investigator</span>
-                    </div>
+            <div class="d-none d-md-block">
+                <div class="glass-panel py-2 px-4 mono small border-info border-opacity-25">
+                    <i class="bi bi-clock me-2 text-info"></i> <span id="liveClock">00:00:00</span>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- Key Metrics -->
+        <!-- Extraordinary Stat Grid -->
         <div class="row g-4 mb-5">
             <div class="col-md-3">
-                <div class="glass-card text-center position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-10"><i class="bi bi-shield-check fs-1"></i></div>
-                    <span class="d-block small text-muted text-uppercase tracking-wider mb-2">Total Scans</span>
-                    <h3 class="stat-value" th:text="${totalScans}">0</h3>
-                    <div class="progress mt-3 bg-white bg-opacity-5" style="height: 4px;">
-                        <div class="progress-bar bg-primary" style="width: 70%"></div>
-                    </div>
+                <div class="glass-panel stat-card tactical-glow h-100">
+                    <div class="mono extra-small text-info mb-2">PULSE_ACTIVITY</div>
+                    <div class="stat-val" th:text="${totalScans ?: '0'}">0</div>
+                    <div class="extra-small opacity-50">HEURISTIC_OPS</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card text-center position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-10 text-danger"><i class="bi bi-shield-slash fs-1"></i></div>
-                    <span class="d-block small text-muted text-uppercase tracking-wider mb-2">Threats Neutralized</span>
-                    <h3 class="stat-value text-danger" th:text="${blockedThreats}">0</h3>
-                    <div class="progress mt-3 bg-white bg-opacity-5" style="height: 4px;">
-                        <div class="progress-bar bg-danger" style="width: 40%"></div>
-                    </div>
+                <div class="glass-panel stat-card tactical-glow h-100">
+                    <div class="mono extra-small text-danger mb-2">NEUTRALIZED_VECTORS</div>
+                    <div class="stat-val text-danger" th:text="${blockedThreats ?: '0'}">0</div>
+                    <div class="extra-small opacity-50">CRITICAL_MITIGATION</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card text-center position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-10 text-success"><i class="bi bi-people fs-1"></i></div>
-                    <span class="d-block small text-muted text-uppercase tracking-wider mb-2">Command Team</span>
-                    <h3 class="stat-value text-success" th:text="${activeUsers}">0</h3>
-                    <div class="progress mt-3 bg-white bg-opacity-5" style="height: 4px;">
-                        <div class="progress-bar bg-success" style="width: 60%"></div>
-                    </div>
+                <div class="glass-panel stat-card tactical-glow h-100">
+                    <div class="mono extra-small text-success mb-2">AUTH_OPERATORS</div>
+                    <div class="stat-val text-success" th:text="${activeUsers ?: '0'}">0</div>
+                    <div class="extra-small opacity-50">ROOT_VERIFIED</div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="glass-card text-center position-relative overflow-hidden border-primary border-opacity-50">
-                    <div class="position-absolute top-0 end-0 p-3 opacity-20 text-primary"><i class="bi bi-lightning-charge fs-1"></i></div>
-                    <span class="d-block small text-muted text-uppercase tracking-wider mb-2">Heuristic Accuracy</span>
-                    <h3 class="stat-value text-info">99.8%</h3>
-                    <div class="progress mt-3 bg-white bg-opacity-5" style="height: 4px;">
-                        <div class="progress-bar bg-info" style="width: 99%"></div>
-                    </div>
+                <div class="glass-panel stat-card tactical-glow h-100">
+                    <div class="mono extra-small text-purple mb-2" style="color: var(--cyber-purple);">NEURAL_ACCURACY</div>
+                    <div class="stat-val" style="color: var(--cyber-purple);">99.8<span class="fs-4">%</span></div>
+                    <div class="extra-small opacity-50">BEYOND_QUANTUM</div>
                 </div>
             </div>
         </div>
 
         <div class="row g-4">
-            <!-- Recent Activity -->
+            <!-- Intelligence Matrix -->
             <div class="col-lg-8">
-                <div class="glass-card mb-4">
+                <div class="glass-panel p-4 h-100">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="fw-700 mb-0 d-flex align-items-center">
-                            <i class="bi bi-journal-code text-primary me-2"></i> Recent Security Events
-                        </h5>
-                        <a href="/audit-logs" class="text-primary text-decoration-none small fw-bold">VIEW ALL <i class="bi bi-arrow-right"></i></a>
+                        <h5 class="fw-800 m-0"><i class="bi bi-activity text-info me-2"></i> Intelligence Matrix</h5>
+                        <a th:href="@{/audit-logs}" class="mono extra-small text-info text-decoration-none border-bottom border-info border-opacity-25 pb-1">VIEW_ALL_LOGS</a>
                     </div>
+                    
                     <div class="table-responsive">
-                        <table class="cyber-table">
-                            <thead>
+                        <table class="table table-dark table-hover align-middle border-0">
+                            <thead class="small mono opacity-50 text-uppercase">
                                 <tr>
-                                    <th>Timestamp</th>
-                                    <th>Agent</th>
-                                    <th>Action</th>
-                                    <th>Outcome</th>
+                                    <th class="border-0">Timestamp</th>
+                                    <th class="border-0">Operator</th>
+                                    <th class="border-0">Action_Hash</th>
+                                    <th class="border-0">Result</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr th:each="log : ${recentLogs}">
-                                    <td class="small" th:text="${#temporals.format(log.timestamp, 'HH:mm:ss')}">10:00:00</td>
-                                    <td class="fw-bold small" th:text="${log.performedBy}">System</td>
-                                    <td class="text-muted small" th:text="${log.action}">SCAN_EXECUTED</td>
-                                    <td>
-                                        <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3" 
-                                              th:if="${log.action != 'USER_BLOCKED'}" th:text="'SUCCESS'">SUCCESS</span>
-                                        <span class="badge rounded-pill bg-danger bg-opacity-10 text-danger px-3" 
-                                              th:if="${log.action == 'USER_BLOCKED'}" th:text="'PROTECTED'">PROTECTED</span>
+                            <tbody class="small">
+                                <tr th:each="log : ${recentLogs}" class="border-bottom border-secondary border-opacity-10">
+                                    <td class="py-3 mono" th:text="${#temporals.format(log.timestamp, 'HH:mm:ss')}">12:00:00</td>
+                                    <td class="py-3 fw-bold" th:text="${log.performedBy}">SYSTEM</td>
+                                    <td class="py-3 opacity-75" th:text="${log.action}">DATA_ENCRYPTION</td>
+                                    <td class="py-3">
+                                        <span class="badge rounded-pill border border-info text-info mono extra-small px-3">PROTECTED</span>
                                     </td>
                                 </tr>
-                                <tr th:if="${#lists.isEmpty(recentLogs)}">
-                                    <td colspan="4" class="text-center py-4 text-muted small">No recent activity detected.</td>
+                                <tr th:if="${#lists.isEmpty(recentLogs)}" class="text-center">
+                                    <td colspan="4" class="py-5 opacity-50 mono">WAITING_FOR_MATRIX_FEED...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -160,61 +132,63 @@
                 </div>
             </div>
 
-            <!-- Quick Actions / Status -->
+            <!-- Quick Pulse -->
             <div class="col-lg-4">
-                <div class="glass-card mb-4 border-primary border-opacity-25">
-                    <h5 class="fw-700 mb-4"><i class="bi bi-shield-shaded text-primary me-2"></i> Threat Status</h5>
-                    <div class="d-flex flex-column gap-3">
-                        <div class="p-3 bg-white bg-opacity-5 rounded-3 d-flex justify-content-between align-items-center">
-                            <span class="small text-muted">Firewall Cluster</span>
-                            <span class="badge bg-success bg-opacity-75 rounded-pill px-3">ACTIVE</span>
+                <div class="glass-panel p-4 h-100 border-info border-opacity-25">
+                    <h5 class="fw-800 mb-4"><i class="bi bi-shield-shaded text-info me-2"></i> Tactical Status</h5>
+                    <div class="d-flex flex-column gap-3 mb-5">
+                        <div class="p-3 bg-white bg-opacity-5 rounded-3 d-flex justify-content-between align-items-center border border-white border-opacity-10">
+                            <span class="small opacity-75">Quantum Firewall</span>
+                            <span class="badge bg-success bg-opacity-75 rounded-pill px-3">ENFORCED</span>
                         </div>
-                        <div class="p-3 bg-white bg-opacity-5 rounded-3 d-flex justify-content-between align-items-center">
-                            <span class="small text-muted">Neural Engine</span>
-                            <span class="badge bg-success bg-opacity-75 rounded-pill px-3">OPTIMAL</span>
+                        <div class="p-3 bg-white bg-opacity-5 rounded-3 d-flex justify-content-between align-items-center border border-white border-opacity-10">
+                            <span class="small opacity-75">Neural Scraper</span>
+                            <span class="badge bg-info bg-opacity-75 rounded-pill px-3">CALIBRATED</span>
                         </div>
-                        <div class="p-3 bg-white bg-opacity-5 rounded-3 d-flex justify-content-between align-items-center">
-                            <span class="small text-muted">Global Blacklist</span>
-                            <span class="badge bg-info bg-opacity-75 rounded-pill px-3">SYNCED</span>
+                        <div class="p-3 bg-white bg-opacity-5 rounded-3 d-flex justify-content-between align-items-center border border-white border-opacity-10">
+                            <span class="small opacity-75">Zero-Trust Protocol</span>
+                            <span class="badge bg-purple bg-opacity-75 rounded-pill px-3" style="background-color: var(--cyber-purple) !important;">ACTIVE</span>
                         </div>
                     </div>
-                    <hr class="my-4 border-secondary border-opacity-25">
-                    <a href="/threat-scan" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm">
-                        <i class="bi bi-plus-lg me-2"></i> NEW DEEP SCAN
+                    <a th:href="@{/threat-scan}" class="btn-elite w-100 text-center text-decoration-none d-block py-3">
+                        <i class="bi bi-plus-lg me-2"></i> INITIALIZE_SCAN
                     </a>
-                </div>
-
-                <div class="glass-card">
-                    <h6 class="fw-bold mb-3 small text-muted text-uppercase">Command Tip</h6>
-                    <p class="small text-white-50 mb-0">Use the <span class="text-primary fw-bold">Threat Scan</span> console to analyze URL entropy and detect credential harvesting patterns in real-time.</p>
                 </div>
             </div>
         </div>
+
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function updateTime() {
+        function updateClock() {
             const now = new Date();
             const timeStr = now.getHours().toString().padStart(2, '0') + ':' + 
                           now.getMinutes().toString().padStart(2, '0') + ':' + 
                           now.getSeconds().toString().padStart(2, '0');
-            document.getElementById('liveTime').innerText = timeStr;
+            document.getElementById('liveClock').innerText = timeStr;
         }
-        setInterval(updateTime, 1000);
-        updateTime();
+        setInterval(updateClock, 1000);
+        updateClock();
 
-        // Sidebar mobile toggle
-        const sidebarEl = document.getElementById('sidebar');
-        const overlayEl = document.getElementById('sidebarOverlay');
-        document.querySelector('.sidebar-toggle')?.addEventListener('click', () => {
-            sidebarEl.classList.toggle('show');
-            overlayEl.classList.toggle('active');
-        });
-        overlayEl?.addEventListener('click', () => {
-            sidebarEl.classList.remove('show');
-            overlayEl.classList.remove('active');
-        });
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggle = document.getElementById('sidebarToggle');
+
+        if(toggle) {
+            toggle.addEventListener('click', () => {
+                sidebar.classList.add('show');
+                overlay.classList.add('active');
+            });
+        }
+
+        if(overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('active');
+            });
+        }
     </script>
 </body>
 </html>
+>
