@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,7 +72,7 @@
                         <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                             <i class="bi bi-person-fill text-white"></i>
                         </div>
-                        <span class="small fw-bold me-2" th:text="${#authentication.name}">Investigator</span>
+                        <span class="small fw-bold me-2" sec:authentication="name">Investigator</span>
                     </div>
                 </div>
             </div>
@@ -94,7 +94,7 @@
                 <div class="glass-card text-center position-relative overflow-hidden">
                     <div class="position-absolute top-0 end-0 p-3 opacity-10 text-danger"><i class="bi bi-shield-slash fs-1"></i></div>
                     <span class="d-block small text-muted text-uppercase tracking-wider mb-2">Threats Neutralized</span>
-                    <h3 class="stat-value text-danger" th:text="${blockedCount}">0</h3>
+                    <h3 class="stat-value text-danger" th:text="${blockedThreats}">0</h3>
                     <div class="progress mt-3 bg-white bg-opacity-5" style="height: 4px;">
                         <div class="progress-bar bg-danger" style="width: 40%"></div>
                     </div>
@@ -104,7 +104,7 @@
                 <div class="glass-card text-center position-relative overflow-hidden">
                     <div class="position-absolute top-0 end-0 p-3 opacity-10 text-success"><i class="bi bi-people fs-1"></i></div>
                     <span class="d-block small text-muted text-uppercase tracking-wider mb-2">Command Team</span>
-                    <h3 class="stat-value text-success" th:text="${investigatorCount}">0</h3>
+                    <h3 class="stat-value text-success" th:text="${activeUsers}">0</h3>
                     <div class="progress mt-3 bg-white bg-opacity-5" style="height: 4px;">
                         <div class="progress-bar bg-success" style="width: 60%"></div>
                     </div>
