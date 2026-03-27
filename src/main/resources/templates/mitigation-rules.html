@@ -60,11 +60,11 @@
                         </thead>
                         <tbody>
                             <tr th:each="rule : ${rules}">
-                                <td class="fw-700 text-white" th:text="${rule.ruleName}">Default Rule</td>
-                                <td class="mono small text-muted" th:text="${rule.ruleDefinition}">pattern_match</td>
+                                <td class="fw-700 text-white" th:text="${rule.name}">Default Rule</td>
+                                <td class="mono small text-muted" th:text="${rule.description}">pattern_match</td>
                                 <td>
-                                    <span th:classappend="${rule.severity == 'HIGH'} ? 'status-danger' : (${rule.severity == 'MEDIUM'} ? 'status-warning' : 'status-active')"
-                                          class="badge-status" th:text="${rule.severity}">ACTIVE</span>
+                                    <span th:classappend="${rule.action == 'BLOCK'} ? 'status-danger' : (${rule.action == 'MFA'} ? 'status-warning' : 'status-active')"
+                                          class="badge-status" th:text="${rule.action}">BLOCK</span>
                                 </td>
                                 <td>
                                     <a th:href="@{/rules/delete/{id}(id=${rule.id})}" class="btn btn-outline-danger border-0 p-2 lh-1 text-danger" title="REVOKE RULE">
@@ -93,19 +93,19 @@
                 <div class="modal-body p-4">
                     <form th:action="@{/rules/add}" method="post">
                         <div class="mb-3">
-                            <label for="ruleName" class="small fw-700 text-muted text-uppercase mb-2">Protocol Identifier</label>
-                            <input type="text" class="form-control bg-dark border-secondary text-white p-3 border-opacity-25" id="ruleName" name="ruleName" placeholder="e.g. BLOCK_IP_RANGE" required>
+                            <label for="name" class="small fw-700 text-muted text-uppercase mb-2">Protocol Identifier</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-white p-3 border-opacity-25" id="name" name="name" placeholder="e.g. BLOCK_IP_RANGE" required>
                         </div>
                         <div class="mb-3">
-                            <label for="ruleDefinition" class="small fw-700 text-muted text-uppercase mb-2">Vector Expression</label>
-                            <textarea class="form-control bg-dark border-secondary text-white p-3 border-opacity-25 mono small" id="ruleDefinition" name="ruleDefinition" rows="3" placeholder="JSON or Regex mapping" required></textarea>
+                            <label for="description" class="small fw-700 text-muted text-uppercase mb-2">Vector Expression</label>
+                            <input type="text" class="form-control bg-dark border-secondary text-white p-3 border-opacity-25 mono small" id="description" name="description" placeholder="Description of the rule" required>
                         </div>
                         <div class="mb-4">
-                            <label for="severity" class="small fw-700 text-muted text-uppercase mb-2">Threat Severity</label>
-                            <select class="form-select bg-dark border-secondary text-white p-3 border-opacity-25" id="severity" name="severity">
-                                <option value="LOW">LOW_PRIORITY</option>
-                                <option value="MEDIUM">ELEVATED_RISK</option>
-                                <option value="HIGH" selected>CRITICAL_BREACH</option>
+                            <label for="action" class="small fw-700 text-muted text-uppercase mb-2">Threat Action</label>
+                            <select class="form-select bg-dark border-secondary text-white p-3 border-opacity-25" id="action" name="action">
+                                <option value="FLAG">FLAG FOR REVIEW</option>
+                                <option value="MFA">REQUIRE MFA</option>
+                                <option value="BLOCK" selected>BLOCK CONNECTION</option>
                             </select>
                         </div>
                         <div class="d-flex justify-content-end gap-2">

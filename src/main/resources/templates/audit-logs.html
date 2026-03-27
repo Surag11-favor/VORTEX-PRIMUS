@@ -100,7 +100,7 @@
                                         <div class="pulse-active" style="width: 6px; height: 6px;"></div>
                                         <h5 class="fw-800 text-white m-0" th:text="${log.action}">SCAN_EXECUTED</h5>
                                     </div>
-                                    <div class="mono small text-muted">VECTOR: [[${log.payload} != null ? ${log.payload} : 'N/A']]</div>
+                                    <div class="mono small text-muted">VECTOR: [[${log.details} != null ? ${log.details} : 'N/A']]</div>
                                 </div>
                                 <div class="text-end">
                                     <div class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1 mb-1 fw-700 font-monospace small"
