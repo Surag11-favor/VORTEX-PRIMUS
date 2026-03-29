@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/vortex-primus.css}">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <style>
         .scanner-canvas {
             width: 100%;
@@ -40,6 +42,7 @@
             top: 0;
             animation: scanLine 3s infinite ease-in-out;
             box-shadow: 0 0 15px var(--accent-blue);
+            display: none;
         }
         @keyframes scanLine {
             0% { top: 0% } 50% { top: 100% } 100% { top: 0% }
@@ -79,12 +82,63 @@
             color: white;
             padding: 10px;
         }
+
+        /* Result Panel */
+        .result-panel {
+            display: none;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .result-panel.show { display: block; }
+
+        .risk-gauge {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            position: relative;
+        }
+        .risk-gauge::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            padding: 4px;
+            background: conic-gradient(var(--gauge-color) var(--gauge-pct), rgba(255,255,255,0.05) var(--gauge-pct));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+        .risk-low { --gauge-color: #10b981; color: #10b981; }
+        .risk-medium { --gauge-color: #fbbf24; color: #fbbf24; }
+        .risk-high { --gauge-color: #f43f5e; color: #f43f5e; }
+
+        .finding-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .finding-item i {
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body class="fade-in">
 
     <div class="app-wrapper">
-        <!-- Sidebar (Same as Dashboard) -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="d-flex align-items-center gap-3 mb-5 px-3">
                 <i class="bi bi-radar text-cyan fs-3"></i>
@@ -114,7 +168,7 @@
                     <p class="text-muted small">Deep-packet heuristics and neural vector analysis pulse.</p>
                 </div>
                 <div class="glass-card p-2">
-                    <span class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-2 fw-700 small">
+                    <span id="engineStatus" class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-20 px-3 py-2 fw-700 small">
                         CORE_ENGINE: ACTIVE
                     </span>
                 </div>
@@ -129,7 +183,7 @@
                             <p class="text-muted small">Select primary intelligence streams for the next scan pulse.</p>
                         </div>
 
-                        <form id="scanForm" th:action="@{/threat-scan}" method="post">
+                        <form id="scanForm">
                             <div class="mb-4">
                                 <label class="small fw-700 text-muted text-uppercase mb-2 d-block" style="letter-spacing: 0.1em;">Target Intelligence Pointer</label>
                                 <input type="text" id="targetIp" name="targetIp" class="form-input-premium" placeholder="https://cyberspace.node/alpha-omega or 192.168.1.1" required>
@@ -137,7 +191,7 @@
 
                             <div class="mb-4">
                                 <label class="small fw-700 text-muted text-uppercase mb-2 d-block" style="letter-spacing: 0.1em;">Target Origin</label>
-                                <select name="targetOrigin" class="form-select-premium" style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: white; padding: 14px; border-radius: 12px; width: 100%;" required>
+                                <select name="targetOrigin" id="targetOrigin" class="form-select-premium" style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: white; padding: 14px; border-radius: 12px; width: 100%;" required>
                                     <option value="Global">GLOBAL_NEURAL_CORE</option>
                                     <option value="Regional">REGIONAL_ISOLATION</option>
                                     <option value="Endpoint">ENDPOINT_SPECIFIC</option>
@@ -181,10 +235,59 @@
                     </div>
                 </div>
 
+                <!-- Scanner Visual + Terminal -->
+                <div class="col-lg-7">
+                    <div class="glass-card p-4 h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-800 text-white m-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-broadcast text-primary"></i> Scan Terminal
+                            </h5>
+                            <span id="scanStatus" class="badge bg-success bg-opacity-10 text-emerald border border-success border-opacity-20 px-3 py-1 fw-700 small mono">
+                                READY_FOR_INPUT
+                            </span>
+                        </div>
+
+                        <!-- Scanner Canvas -->
+                        <div class="scanner-canvas mb-4">
+                            <div class="scan-ring"></div>
+                            <div class="scan-ring" style="animation-delay: 1s;"></div>
+                            <div class="scan-ring" style="animation-delay: 2s;"></div>
+                            <div id="scanLine" class="scan-line"></div>
+                            <div id="awaitingText" class="text-center">
+                                <i class="bi bi-radar text-primary display-4 mb-3 d-block opacity-50"></i>
+                                <div class="mono text-muted small">AWAITING_PULSE_INITIALIZATION</div>
+                            </div>
+                            <!-- Scan Result Display -->
+                            <div id="scanResult" class="result-panel text-center px-4">
+                                <div id="riskGauge" class="risk-gauge mx-auto mb-3">
+                                    <span id="scoreText">0</span>
+                                </div>
+                                <div id="riskLabel" class="fw-800 fs-5 mb-2">--</div>
+                                <div id="summaryText" class="text-muted small"></div>
+                            </div>
+                        </div>
+
+                        <!-- Terminal Output -->
+                        <div id="terminal" class="terminal-output">
+                            <div class="terminal-line"><span class="text-muted">[SYSTEM]</span> <span class="prefix">SYS:</span> READY_FOR_INPUT...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- RESTORED: Intelligence Feed -->
+            <!-- Findings Panel (appears after scan) -->
+            <div id="findingsPanel" class="row mt-4" style="display: none;">
+                <div class="col-12">
+                    <div class="glass-card p-4">
+                        <h5 class="fw-800 text-white mb-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-exclamation-diamond text-warning"></i> Threat Findings
+                        </h5>
+                        <div id="findingsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intelligence Feed -->
             <div class="row mt-5">
                 <div class="col-12">
                     <div class="glass-card p-4">
@@ -215,7 +318,7 @@
                                             <div class="d-flex align-items-center gap-2">
                                                 <div class="progress w-100" style="height: 6px; background: rgba(255,255,255,0.05);">
                                                     <div class="progress-bar" role="progressbar" 
-                                                         th:style="'width: ' + (${scan.riskScore} * 10) + '%; background-color: ' + (${scan.riskLevel == 'HIGH' ? '#f43f5e' : (scan.riskLevel == 'MEDIUM' ? '#fbbf24' : '#10b981')})"></div>
+                                                         th:style="'width: ' + ${scan.riskScore} + '%; background-color: ' + (${scan.riskLevel == 'HIGH' ? '#f43f5e' : (scan.riskLevel == 'MEDIUM' ? '#fbbf24' : '#10b981')})"></div>
                                                 </div>
                                                 <span class="mono small fw-800" th:text="${#numbers.formatDecimal(scan.riskScore, 1, 1)}">0.0</span>
                                             </div>
@@ -247,6 +350,17 @@
         const scanStatus = document.getElementById('scanStatus');
         const scanResult = document.getElementById('scanResult');
         const awaitingText = document.getElementById('awaitingText');
+        const engineStatus = document.getElementById('engineStatus');
+        const findingsPanel = document.getElementById('findingsPanel');
+        const findingsList = document.getElementById('findingsList');
+        const riskGauge = document.getElementById('riskGauge');
+        const scoreText = document.getElementById('scoreText');
+        const riskLabel = document.getElementById('riskLabel');
+        const summaryText = document.getElementById('summaryText');
+
+        // Get CSRF token for API calls
+        const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
         function addLog(msg, prefix = 'SYS:') {
             const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -257,50 +371,114 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
+        function showResult(data) {
+            const score = Math.round(data.threatScore || 0);
+            const risk = data.riskRating || 'LOW';
+            const summary = data.summary || 'Analysis complete.';
+            const findings = data.findings || [];
+
+            // Update gauge
+            riskGauge.className = 'risk-gauge mx-auto mb-3';
+            riskGauge.style.setProperty('--gauge-pct', score + '%');
+            if (risk === 'HIGH') {
+                riskGauge.classList.add('risk-high');
+                riskLabel.textContent = 'THREAT_IDENTIFIED';
+                riskLabel.style.color = '#f43f5e';
+            } else if (risk === 'MEDIUM') {
+                riskGauge.classList.add('risk-medium');
+                riskLabel.textContent = 'SUSPICIOUS_VECTOR';
+                riskLabel.style.color = '#fbbf24';
+            } else {
+                riskGauge.classList.add('risk-low');
+                riskLabel.textContent = 'VERIFIED_CLEAN';
+                riskLabel.style.color = '#10b981';
+            }
+            scoreText.textContent = score;
+            summaryText.textContent = summary;
+
+            // Show result
+            awaitingText.style.display = 'none';
+            scanResult.classList.add('show');
+            scanLine.style.display = 'none';
+            scanStatus.textContent = 'SCAN_COMPLETE';
+            scanStatus.classList.remove('text-primary');
+            scanStatus.classList.add('text-emerald');
+
+            // Show findings
+            if (findings.length > 0) {
+                findingsPanel.style.display = 'block';
+                findingsList.innerHTML = '';
+                findings.forEach(f => {
+                    const item = document.createElement('div');
+                    item.className = 'finding-item';
+                    const icon = risk === 'HIGH' ? 'bi-exclamation-triangle-fill text-danger' : 
+                                 risk === 'MEDIUM' ? 'bi-exclamation-circle-fill text-warning' : 
+                                 'bi-check-circle-fill text-success';
+                    item.innerHTML = `<i class="bi ${icon}"></i><span>${f}</span>`;
+                    findingsList.appendChild(item);
+                });
+            }
+
+            // Re-enable button
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="bi bi-radar me-2"></i> INITIALIZE_PULSE';
+
+            // Reload page after 3s to update the feed table
+            setTimeout(() => { window.location.reload(); }, 3000);
+        }
+
         scanForm.onsubmit = (e) => {
             e.preventDefault();
             const targetPointer = document.getElementById('targetIp').value;
-            const targetOrigin = e.target.targetOrigin.value;
+            const targetOrigin = document.getElementById('targetOrigin').value;
             
+            if (!targetPointer.trim()) return;
+
+            // Reset UI
             startBtn.disabled = true;
             startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> ANALYZING...';
             scanLine.style.display = 'block';
             awaitingText.style.display = 'none';
-            scanResult.style.display = 'none';
-            scanStatus.innerText = 'INITIALIZING_DEEP_SCAN';
-            scanStatus.classList.replace('text-emerald', 'text-primary');
+            scanResult.classList.remove('show');
+            findingsPanel.style.display = 'none';
+            scanStatus.textContent = 'INITIALIZING_DEEP_SCAN';
+            scanStatus.classList.remove('text-emerald');
+            scanStatus.classList.add('text-primary');
 
             addLog(`Establishing secure link to ${targetOrigin} node...`);
-            setTimeout(() => {
-                addLog(`Analyzing pointer: ${targetPointer}...`, 'NET:');
-            }, 500);
-            
-            setTimeout(() => {
-                addLog('Neural weights loaded. Protocol L7 decryption active.');
-                scanStatus.innerText = 'NEURAL_VECTOR_ANALYSIS';
-            }, 1000);
+            setTimeout(() => addLog(`Analyzing pointer: ${targetPointer}...`, 'NET:'), 500);
+            setTimeout(() => { addLog('Neural weights loaded. Protocol L7 decryption active.'); scanStatus.textContent = 'NEURAL_VECTOR_ANALYSIS'; }, 1000);
+            setTimeout(() => { addLog('Scanning packet headers for anomalies...'); addLog('Heuristics check in progress...', 'AI:'); }, 2000);
+            setTimeout(() => { addLog('Pattern matching against known threat database...'); addLog('Entropy analysis running...', 'SYS:'); }, 3000);
 
-            setTimeout(() => {
-                addLog('Scanning packet headers for anomalies...');
-                addLog('Heuristics check: 84% complete', 'AI:');
-            }, 2000);
+            // Fire real API call
+            const formData = new URLSearchParams();
+            formData.append('payload', targetPointer);
 
-            setTimeout(() => {
-                addLog('Pattern matching against known threat database...');
-                addLog('Entropy analysis: STABLE', 'SYS:');
-            }, 3500);
+            const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+            headers[csrfHeader] = csrfToken;
 
-            setTimeout(() => {
-                addLog('SCAN_COMPLETE. Persisting results to secure vault...');
+            fetch('/api/scans/analyze', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                addLog('SCAN_COMPLETE. Processing intelligence report...', 'SYS:');
+                addLog(`Verdict: ${data.riskRating} | Score: ${Math.round(data.threatScore || 0)}%`, 'INTEL:');
+                if (data.findings && data.findings.length > 0) {
+                    addLog(`${data.findings.length} threat vector(s) identified.`, 'ALERT:');
+                }
+                setTimeout(() => showResult(data), 800);
+            })
+            .catch(err => {
+                addLog('CRITICAL: Analysis engine error — ' + err.message, 'ERR:');
                 scanLine.style.display = 'none';
-                scanResult.style.display = 'block';
-                scanStatus.innerText = 'SYNCING_DATA';
-                
-                // Real submission after animation
-                setTimeout(() => {
-                    scanForm.submit();
-                }, 1500);
-            }, 5000);
+                scanStatus.textContent = 'ENGINE_ERROR';
+                startBtn.disabled = false;
+                startBtn.innerHTML = '<i class="bi bi-radar me-2"></i> RETRY_PULSE';
+            });
         };
     </script>
 </body>

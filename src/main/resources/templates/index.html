@@ -224,7 +224,7 @@
                                                 <span class="mono small fw-800" th:text="${#numbers.formatDecimal(scan.riskScore, 1, 1)}">0.0</span>
                                                 <div class="progress" style="width: 60px; height: 4px; background: rgba(255,255,255,0.05);">
                                                     <div class="progress-bar" role="progressbar" 
-                                                         th:style="'width: ' + (${scan.riskScore} * 10) + '%; background-color: ' + (${scan.riskLevel == 'HIGH' ? '#f43f5e' : (scan.riskLevel == 'MEDIUM' ? '#fbbf24' : '#10b981')})"></div>
+                                                         th:style="'width: ' + ${scan.riskScore} + '%; background-color: ' + (${scan.riskLevel == 'HIGH' ? '#f43f5e' : (scan.riskLevel == 'MEDIUM' ? '#fbbf24' : '#10b981')})"></div>
                                                 </div>
                                             </div>
                                         </td>
@@ -274,13 +274,25 @@
     </section>
 
     <!-- Impact Section -->
-                            <h3 class="display-5 fw-800 text-white">200+</h3>
-                            <p class="text-muted fw-700 small">GLOBAL CLIENTS</p>
-                        </div>
-                        <div class="col-md-4">
-                            <h3 class="display-5 fw-800 text-white">99.8%</h3>
-                            <p class="text-muted fw-700 small">SYSTEM UPTIME</p>
-                        </div>
+    <section id="impact" class="py-5 mt-5">
+        <div class="container py-5">
+            <div class="text-center">
+                <div class="badge rounded-pill bg-primary bg-opacity-10 text-primary px-3 py-2 mb-4 fw-700 small border border-primary border-opacity-20">
+                    PLATFORM METRICS
+                </div>
+                <h2 class="display-4 fw-800 mb-5">Trusted by <span class="gradient-text">Enterprise</span></h2>
+                <div class="row g-5 justify-content-center">
+                    <div class="col-md-4">
+                        <h3 class="display-5 fw-800 text-white">5M+</h3>
+                        <p class="text-muted fw-700 small">THREATS NEUTRALIZED</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="display-5 fw-800 text-white">200+</h3>
+                        <p class="text-muted fw-700 small">GLOBAL CLIENTS</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3 class="display-5 fw-800 text-white">99.8%</h3>
+                        <p class="text-muted fw-700 small">SYSTEM UPTIME</p>
                     </div>
                 </div>
             </div>

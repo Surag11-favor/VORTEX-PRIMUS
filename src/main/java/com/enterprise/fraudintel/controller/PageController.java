@@ -5,13 +5,17 @@ import com.enterprise.fraudintel.repository.MitigationRuleRepository;
 import com.enterprise.fraudintel.repository.ScanResultRepository;
 import com.enterprise.fraudintel.repository.UserRepository;
 import com.enterprise.fraudintel.entity.MitigationRule;
+import com.enterprise.fraudintel.entity.ScanResult;
 import com.enterprise.fraudintel.entity.User;
+import com.enterprise.fraudintel.service.ScanService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import java.util.Map;
 
 @Controller
 public class PageController {
@@ -21,17 +25,20 @@ public class PageController {
     private final UserRepository userRepository;
     private final AuditLogRepository auditLogRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ScanService scanService;
 
     public PageController(ScanResultRepository scanResultRepository, 
                           MitigationRuleRepository mitigationRuleRepository,
                           UserRepository userRepository,
                           AuditLogRepository auditLogRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          ScanService scanService) {
         this.scanResultRepository = scanResultRepository;
         this.mitigationRuleRepository = mitigationRuleRepository;
         this.userRepository = userRepository;
         this.auditLogRepository = auditLogRepository;
         this.passwordEncoder = passwordEncoder;
+        this.scanService = scanService;
     }
 
     @GetMapping("/")
@@ -45,15 +52,11 @@ public class PageController {
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        // Professional Stats
         model.addAttribute("activeThreats", scanResultRepository.countByRiskLevel("HIGH"));
         model.addAttribute("blockedThreats", auditLogRepository.countByAction("BLOCK"));
         model.addAttribute("totalScans", scanResultRepository.count());
         model.addAttribute("activeUsers", userRepository.count());
-        
-        // Activity Feed
         model.addAttribute("recentLogs", auditLogRepository.findAllByOrderByTimestampDesc().stream().limit(5).toList());
-        
         return "dashboard";
     }
 
@@ -113,13 +116,20 @@ public class PageController {
     }
 
     @PostMapping("/threat-scan")
-    public String performScan(String targetIp) {
+    public String performScan(String targetIp, java.security.Principal principal) {
         if (targetIp != null && !targetIp.isEmpty()) {
-            com.enterprise.fraudintel.entity.ScanResult result = new com.enterprise.fraudintel.entity.ScanResult();
+            Map<String, Object> analysis = scanService.analyzeUrl(targetIp);
+
+            ScanResult result = new ScanResult();
             result.setPayload(targetIp);
-            result.setRiskScore(Math.random() * 10);
-            result.setRiskLevel(result.getRiskScore() > 7 ? "HIGH" : (result.getRiskScore() > 3 ? "MEDIUM" : "LOW"));
-            result.setSocialMediaSentiment("NEUTRAL");
+
+            Object scoreObj = analysis.get("threatScore");
+            double threatScore = scoreObj instanceof Number ? ((Number) scoreObj).doubleValue() : 0.0;
+            result.setRiskScore(threatScore);
+            result.setRiskLevel(String.valueOf(analysis.get("riskRating")));
+            
+            String summary = String.valueOf(analysis.get("summary"));
+            result.setSocialMediaSentiment(summary.length() > 250 ? summary.substring(0, 250) : summary);
             scanResultRepository.save(result);
         }
         return "redirect:/threat-scan";
@@ -128,11 +138,18 @@ public class PageController {
     @PostMapping("/")
     public String publicScan(String targetIp) {
         if (targetIp != null && !targetIp.isEmpty()) {
-            com.enterprise.fraudintel.entity.ScanResult result = new com.enterprise.fraudintel.entity.ScanResult();
+            Map<String, Object> analysis = scanService.analyzeUrl(targetIp);
+
+            ScanResult result = new ScanResult();
             result.setPayload(targetIp);
-            result.setRiskScore(Math.random() * 10);
-            result.setRiskLevel(result.getRiskScore() > 7 ? "HIGH" : (result.getRiskScore() > 3 ? "MEDIUM" : "LOW"));
-            result.setSocialMediaSentiment("NEUTRAL");
+
+            Object scoreObj = analysis.get("threatScore");
+            double threatScore = scoreObj instanceof Number ? ((Number) scoreObj).doubleValue() : 0.0;
+            result.setRiskScore(threatScore);
+            result.setRiskLevel(String.valueOf(analysis.get("riskRating")));
+
+            String summary = String.valueOf(analysis.get("summary"));
+            result.setSocialMediaSentiment(summary.length() > 250 ? summary.substring(0, 250) : summary);
             scanResultRepository.save(result);
         }
         return "redirect:/";
