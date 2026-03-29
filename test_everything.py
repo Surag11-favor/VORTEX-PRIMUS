@@ -5,7 +5,7 @@ import json
 import os
 
 print("Starting Spring Boot App...")
-app_proc = subprocess.Popen(["C:\\Program Files\\Java\\jdk-25\\bin\\java.exe", "-jar", "target/cyber-command-0.0.1-SNAPSHOT.jar"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+app_proc = subprocess.Popen(["C:\\Program Files\\Java\\jdk-25\\bin\\java.exe", "-jar", "target/vortex-primus-0.0.1-SNAPSHOT.jar"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 time.sleep(15)
 
 print("Testing API...")

@@ -26,4 +26,4 @@ try {
     $output += $_.Exception.Message
 }
 
-$output | Out-File -FilePath "C:\Users\NKUNIM\Desktop\Enterprise Fraud Intelligence & Threat Analysis Platform\test_out3.txt" -Encoding utf8
+$output | Out-File -FilePath "C:\Users\NKUNIM\Desktop\CYBER-COMMAND\test_out3.txt" -Encoding utf8

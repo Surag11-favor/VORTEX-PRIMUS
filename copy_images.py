@@ -2,7 +2,7 @@ import shutil
 import os
 
 src_dir = r"C:\Users\NKUNIM\.gemini\antigravity\brain\7ff5819e-7e8f-4975-85e4-652bff77aed6"
-dest_dir = r"C:\Users\NKUNIM\Desktop\Enterprise Fraud Intelligence & Threat Analysis Platform\src\main\resources\static\images"
+dest_dir = r"C:\Users\NKUNIM\Desktop\CYBER-COMMAND\src\main\resources\static\images"
 
 files = {
     "ceo_commanding_v2_1774572260862.png": "ceo_commander.png",

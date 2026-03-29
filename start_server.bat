@@ -1,5 +1,5 @@
 @echo off
-echo Starting CYBER-COMMAND Platform...
+echo Starting VORTEX-PRIMUS Platform...
 
 set PORT=8080
 set JAVA_HOME=C:\Program Files\Java\jdk-25
