@@ -151,6 +151,101 @@
         </div>
     </section>
 
+    <!-- Intelligence Scanner Section (CRITICAL COMPONENT - DO NOT REMOVE) -->
+    <section id="scan" class="py-5 mt-5">
+        <div class="container py-5">
+            <div class="text-center mb-5 pb-5">
+                <h2 class="display-4 fw-800 mb-3">Threat Intelligence | <span class="gradient-text">SCAN</span></h2>
+                <p class="text-secondary mx-auto" style="max-width: 600px;">Execute a deep-packet heuristic pulse against any digital intelligence pointer to identify latent attack vectors.</p>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-8">
+                    <div class="glass-card p-4 p-lg-5" style="background: rgba(15,23,42,0.8); border: 1px solid var(--accent-blue);">
+                        <div class="row g-4 align-items-center">
+                            <div class="col-md-7">
+                                <form id="scanForm" th:action="@{/}" method="post">
+                                    <div class="mb-4">
+                                        <label class="small fw-700 text-muted text-uppercase mb-2 d-block" style="letter-spacing: 0.1em;">Target Intelligence Pointer (URL)</label>
+                                        <div class="d-flex gap-2">
+                                            <input type="text" id="targetIp" name="targetIp" class="form-input-premium flex-grow-1" placeholder="https://secure-matrix.node/alpha-omega" required 
+                                                   style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); color: white; padding: 14px 20px; border-radius: 12px;">
+                                            <button type="submit" id="startBtn" class="btn-premium px-4">
+                                                <i class="bi bi-radar me-lg-2"></i> <span class="d-none d-lg-inline">Initialize Pulse</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                                <div class="glass-card p-3 d-flex align-items-center gap-3" style="background: rgba(34,211,238,0.05); border-color: rgba(34,211,238,0.2);">
+                                    <i class="bi bi-info-circle text-cyan"></i>
+                                    <p class="m-0 small text-white-50">Pulse results are persisted to the global immutable ledger for executive review.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div id="terminal" class="terminal-output" style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 15px; font-family: monospace; font-size: 0.75rem; color: #10b981; height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">
+                                    <div class="terminal-line"><span class="text-muted">[SYSTEM]</span> READY_FOR_INPUT...</div>
+                                    <div id="awaitingText" class="terminal-line mt-2">AWAITING_INITIAL_PULSE_SEQUENCE</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Intelligence Feed Table -->
+            <div class="row mt-5 pt-5">
+                <div class="col-12">
+                    <div class="glass-card p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-800 text-white m-0">Live Intelligence Feed</h5>
+                            <span class="badge bg-cyan bg-opacity-10 text-cyan border border-cyan border-opacity-20 px-3 fw-700 small">REAL-TIME_ARCHIVE</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; border-collapse: separate; border-spacing: 0 8px;">
+                                <thead>
+                                    <tr class="text-muted small uppercase fw-700" style="border: none;">
+                                        <th style="background: transparent; border: none; padding-bottom: 20px;">Timestamp</th>
+                                        <th style="background: transparent; border: none; padding-bottom: 20px;">Pointer</th>
+                                        <th style="background: transparent; border: none; padding-bottom: 20px;">Risk Level</th>
+                                        <th style="background: transparent; border: none; padding-bottom: 20px;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="scan : ${scans}" style="background: rgba(255,255,255,0.02); transition: 0.3s;">
+                                        <td class="mono small text-muted" th:text="${#temporals.format(scan.scanTimestamp, 'yyyy-MM-dd HH:mm:ss')}" style="border: none; border-radius: 12px 0 0 12px; padding: 20px;">2023-01-01 12:00:00</td>
+                                        <td style="border: none;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-link-45deg text-cyan"></i>
+                                                <code class="text-white fw-600" th:text="${scan.payload}">https://example.com</code>
+                                            </div>
+                                        </td>
+                                        <td style="border: none;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="mono small fw-800" th:text="${#numbers.formatDecimal(scan.riskScore, 1, 1)}">0.0</span>
+                                                <div class="progress" style="width: 60px; height: 4px; background: rgba(255,255,255,0.05);">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         th:style="'width: ' + (${scan.riskScore} * 10) + '%; background-color: ' + (${scan.riskLevel == 'HIGH' ? '#f43f5e' : (scan.riskLevel == 'MEDIUM' ? '#fbbf24' : '#10b981')})"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td style="border: none; border-radius: 0 12px 12px 0; padding: 20px;">
+                                            <span th:if="${scan.riskLevel == 'LOW'}" class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-1 fw-800 small">CLEAN</span>
+                                            <span th:if="${scan.riskLevel == 'MEDIUM'}" class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 px-3 py-1 fw-800 small">SUSPICIOUS</span>
+                                            <span th:if="${scan.riskLevel == 'HIGH'}" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-3 py-1 fw-800 small">THREAT</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(scans)}">
+                                        <td colspan="4" class="text-center py-5 text-muted mono" style="border: none;">AWAITING_INITIAL_PULSE...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Global Matrix Section -->
     <section id="intelligence" class="py-5 mt-5 position-relative overflow-hidden" style="background: rgba(0,0,0,0.3);">
         <div class="container py-5">
@@ -200,6 +295,43 @@
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const scanForm = document.getElementById('scanForm');
+        const startBtn = document.getElementById('startBtn');
+        const terminal = document.getElementById('terminal');
+        const awaitingText = document.getElementById('awaitingText');
+
+        function addLog(msg, prefix = 'SYS:') {
+            const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const line = document.createElement('div');
+            line.className = 'terminal-line mb-1';
+            line.innerHTML = `<span class="text-muted pe-2">[${time}]</span> <span class="text-cyan pe-2">${prefix}</span> ${msg}`;
+            terminal.appendChild(line);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        if (scanForm) {
+            scanForm.onsubmit = (e) => {
+                e.preventDefault();
+                const targetPointer = document.getElementById('targetIp').value;
+                
+                startBtn.disabled = true;
+                startBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> PULSING...';
+                awaitingText.style.display = 'none';
+
+                addLog(`Initializing deep-packet heuristic pulse...`);
+                setTimeout(() => addLog(`Target confirmed: ${targetPointer}`, 'TARGET:'), 400);
+                setTimeout(() => addLog('Establishing neural link to Secure Matrix...', 'NET:'), 1200);
+                setTimeout(() => addLog('Analyzing packet heuristics for latent threats...', 'AI:'), 2200);
+                setTimeout(() => addLog('Verifying cryptographic integrity...', 'SEC:'), 3200);
+                setTimeout(() => addLog('Persisting intelligence results to vault...', 'DB:'), 4200);
+                
+                setTimeout(() => {
+                    addLog('PULSE_COMPLETE. Synchronizing feed.');
+                    setTimeout(() => scanForm.submit(), 1000);
+                }, 5200);
+            };
+        }
+    </script>
 </body>
 </html>

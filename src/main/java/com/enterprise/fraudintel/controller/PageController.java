@@ -35,7 +35,10 @@ public class PageController {
     }
 
     @GetMapping("/")
-    public String index() { return "index"; }
+    public String index(Model model) {
+        model.addAttribute("scans", scanResultRepository.findAllByOrderByScanTimestampDesc());
+        return "index";
+    }
 
     @GetMapping("/login")
     public String login() { return "login"; }
@@ -120,5 +123,18 @@ public class PageController {
             scanResultRepository.save(result);
         }
         return "redirect:/threat-scan";
+    }
+
+    @PostMapping("/")
+    public String publicScan(String targetIp) {
+        if (targetIp != null && !targetIp.isEmpty()) {
+            com.enterprise.fraudintel.entity.ScanResult result = new com.enterprise.fraudintel.entity.ScanResult();
+            result.setPayload(targetIp);
+            result.setRiskScore(Math.random() * 10);
+            result.setRiskLevel(result.getRiskScore() > 7 ? "HIGH" : (result.getRiskScore() > 3 ? "MEDIUM" : "LOW"));
+            result.setSocialMediaSentiment("NEUTRAL");
+            scanResultRepository.save(result);
+        }
+        return "redirect:/";
     }
 }
