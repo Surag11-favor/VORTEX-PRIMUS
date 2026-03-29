@@ -105,6 +105,15 @@ public class PageController {
         return "redirect:/mitigation-rules";
     }
 
+    @GetMapping("/rules/toggle/{id}")
+    public String toggleRule(@PathVariable Long id) {
+        mitigationRuleRepository.findById(id).ifPresent(rule -> {
+            rule.setEnabled(!rule.isEnabled());
+            mitigationRuleRepository.save(rule);
+        });
+        return "redirect:/mitigation-rules";
+    }
+
     @PostMapping("/authorized-users/add")
     public String addUser(@RequestParam String username, 
                           @RequestParam String password, 

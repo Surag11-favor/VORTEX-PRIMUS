@@ -7,6 +7,45 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/vortex-primus.css}">
+    <style>
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--accent-emerald);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+        .rule-disabled {
+            opacity: 0.45;
+        }
+    </style>
 </head>
 <body class="fade-in">
 
@@ -45,7 +84,6 @@
                     <h2 class="fw-800 text-white m-0">Active Defense Protocols</h2>
                     <p class="text-muted small">Configure heuristic rules and dynamic response vectors.</p>
                 </div>
-                <!-- Premium Add Rule Button triggering existing modal -->
                 <button type="button" class="btn-premium fs-6" data-bs-toggle="modal" data-bs-target="#addRuleModal">
                     <i class="bi bi-shield-plus"></i> ENFORCE_NEW_RULE
                 </button>
@@ -57,28 +95,40 @@
                     <table class="premium-table">
                         <thead>
                             <tr>
+                                <th>Status</th>
                                 <th>Protocol Name</th>
                                 <th>Vector Definition</th>
-                                <th>Severity Status</th>
-                                <th>Telemetry Actions</th>
+                                <th>Action Type</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="rule : ${rules}">
+                            <tr th:each="rule : ${rules}" th:classappend="${!rule.enabled} ? 'rule-disabled' : ''">
+                                <!-- Toggle Switch -->
+                                <td>
+                                    <a th:href="@{/rules/toggle/{id}(id=${rule.id})}" class="toggle-switch" th:title="${rule.enabled ? 'Click to disable' : 'Click to enable'}">
+                                        <input type="checkbox" th:checked="${rule.enabled}" onclick="return false;">
+                                        <span class="toggle-slider"></span>
+                                    </a>
+                                </td>
                                 <td class="fw-700 text-white" th:text="${rule.name}">Default Rule</td>
                                 <td class="mono small text-muted" th:text="${rule.description}">pattern_match</td>
                                 <td>
-                                    <span th:classappend="${rule.action == 'BLOCK'} ? 'status-danger' : (${rule.action == 'MFA'} ? 'status-warning' : 'status-active')"
-                                          class="badge-status" th:text="${rule.action}">BLOCK</span>
+                                    <!-- BLOCK = red, SANITIZE = green, CHALLENGE = yellow, MFA = yellow, FLAG = blue -->
+                                    <span th:if="${rule.action == 'BLOCK'}" class="badge-status status-danger" th:text="${rule.action}">BLOCK</span>
+                                    <span th:if="${rule.action == 'SANITIZE'}" class="badge-status status-active" th:text="${rule.action}">SANITIZE</span>
+                                    <span th:if="${rule.action == 'CHALLENGE'}" class="badge-status status-warning" th:text="${rule.action}">CHALLENGE</span>
+                                    <span th:if="${rule.action == 'MFA'}" class="badge-status status-warning" th:text="${rule.action}">MFA</span>
+                                    <span th:if="${rule.action == 'FLAG'}" class="badge-status" style="background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid rgba(59,130,246,0.2);" th:text="${rule.action}">FLAG</span>
                                 </td>
                                 <td>
-                                    <a th:href="@{/rules/delete/{id}(id=${rule.id})}" class="btn btn-outline-danger border-0 p-2 lh-1 text-danger" title="REVOKE RULE">
+                                    <a th:href="@{/rules/delete/{id}(id=${rule.id})}" class="btn btn-outline-danger border-0 p-2 lh-1 text-danger" title="REVOKE RULE" onclick="return confirm('Revoke this defense protocol?');">
                                         <i class="bi bi-x-octagon"></i>
                                     </a>
                                 </td>
                             </tr>
-                            <tr th:if="${#lists.isEmpty(rules)}">
-                                <td colspan="4" class="text-center py-5 text-muted mono">NO_ACTIVE_PROTOCOLS_FOUND...</td>
+                            <tr th:if="${rules == null or rules.isEmpty()}">
+                                <td colspan="5" class="text-center py-5 text-muted mono">NO_ACTIVE_PROTOCOLS_FOUND...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -87,7 +137,7 @@
         </main>
     </div>
 
-    <!-- The original Modal is mostly kept, with CSS classes updated for the new theme -->
+    <!-- Add Rule Modal -->
     <div class="modal fade" id="addRuleModal" tabindex="-1" aria-labelledby="addRuleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-card border-0">
@@ -99,18 +149,20 @@
                     <form th:action="@{/rules/add}" method="post">
                         <div class="mb-3">
                             <label for="name" class="small fw-700 text-muted text-uppercase mb-2">Protocol Identifier</label>
-                            <input type="text" class="form-control bg-dark border-secondary text-white p-3 border-opacity-25" id="name" name="name" placeholder="e.g. BLOCK_IP_RANGE" required>
+                            <input type="text" class="form-input-premium" id="name" name="name" placeholder="e.g. BLOCK_IP_RANGE" required>
                         </div>
                         <div class="mb-3">
                             <label for="description" class="small fw-700 text-muted text-uppercase mb-2">Vector Expression</label>
-                            <input type="text" class="form-control bg-dark border-secondary text-white p-3 border-opacity-25 mono small" id="description" name="description" placeholder="Description of the rule" required>
+                            <input type="text" class="form-input-premium mono" id="description" name="description" placeholder="Description of the rule" required>
                         </div>
                         <div class="mb-4">
                             <label for="action" class="small fw-700 text-muted text-uppercase mb-2">Threat Action</label>
-                            <select class="form-select bg-dark border-secondary text-white p-3 border-opacity-25" id="action" name="action">
-                                <option value="FLAG">FLAG FOR REVIEW</option>
-                                <option value="MFA">REQUIRE MFA</option>
-                                <option value="BLOCK" selected>BLOCK CONNECTION</option>
+                            <select class="form-input-premium" id="action" name="action" style="cursor: pointer;">
+                                <option value="BLOCK">🛑 BLOCK CONNECTION</option>
+                                <option value="SANITIZE">🧹 SANITIZE (Deep Packet Inspection)</option>
+                                <option value="CHALLENGE">🔐 CHALLENGE (MFA/CAPTCHA)</option>
+                                <option value="FLAG">🚩 FLAG FOR REVIEW</option>
+                                <option value="MFA">🔑 REQUIRE MFA</option>
                             </select>
                         </div>
                         <div class="d-flex justify-content-end gap-2">
