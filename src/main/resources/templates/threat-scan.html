@@ -181,35 +181,56 @@
                     </div>
                 </div>
 
-                <!-- Visualization Panel -->
-                <div class="col-lg-7">
-                    <div class="glass-card p-4 h-100">
+                </div>
+            </div>
+
+            <!-- RESTORED: Intelligence Feed -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="glass-card p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h5 class="fw-800 text-white m-0">Real-time Visualization</h5>
-                            <div class="mono small text-emerald fw-700" id="scanStatus">AWAITING_INPUT</div>
+                            <h5 class="fw-800 text-white m-0">Intelligence Feed</h5>
+                            <span class="badge bg-cyan bg-opacity-10 text-cyan border border-cyan border-opacity-20 px-3 fw-700 small">ARCHIVE_LINKED</span>
                         </div>
-
-                        <div class="scanner-canvas mb-4">
-                            <div class="scan-line" id="scanLine" style="display: none;"></div>
-                            <div class="scan-ring" id="scanRing1"></div>
-                            <div class="scan-ring" id="scanRing2" style="animation-delay: -2s;"></div>
-                            
-                            <img th:src="@{/images/neural_network.png}" style="opacity: 0.05; position: absolute; max-width: 80%; transform: rotate(45deg);">
-                            
-                            <div id="scanResult" class="text-center position-relative z-1" style="display: none;">
-                                <div class="badge bg-emerald text-white bg-opacity-10 border border-emerald border-opacity-20 mb-3 px-3 py-2 fw-700 p-2 fs-6">
-                                    <i class="bi bi-shield-check me-2"></i> VERIFIED_CLEAN
-                                </div>
-                                <div class="text-white fs-4 fw-800">ZERO_THREATS_DETECTED</div>
-                            </div>
-                            
-                            <div id="awaitingText" class="text-center text-muted mono fw-700 opacity-20">
-                                INITIALIZE_CONNECTION_FOR_TELEMETRY
-                            </div>
-                        </div>
-
-                        <div class="terminal-output" id="terminal">
-                            <div class="terminal-line"><span class="time">[00:00:00]</span> <span class="prefix">SYS:</span> READY_FOR_INSTRUCTION</div>
+                        <div class="table-responsive">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>Target Intelligence Pointer</th>
+                                        <th>Risk Score</th>
+                                        <th>Heuristic Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="scan : ${scans}">
+                                        <td class="mono small text-muted" th:text="${#temporals.format(scan.scanTimestamp, 'yyyy-MM-dd HH:mm:ss')}">2023-01-01 12:00:00</td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <i class="bi bi-link-45deg text-cyan"></i>
+                                                <code class="text-white fw-600" th:text="${scan.payload}">https://example.com</code>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress w-100" style="height: 6px; background: rgba(255,255,255,0.05);">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         th:style="'width: ' + (${scan.riskScore} * 10) + '%; background-color: ' + (${scan.riskLevel == 'HIGH' ? '#f43f5e' : (scan.riskLevel == 'MEDIUM' ? '#fbbf24' : '#10b981')})"></div>
+                                                </div>
+                                                <span class="mono small fw-800" th:text="${#numbers.formatDecimal(scan.riskScore, 1, 1)}">0.0</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span th:if="${scan.riskLevel == 'LOW'}" class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-1 fw-800 small">VERIFIED_CLEAN</span>
+                                            <span th:if="${scan.riskLevel == 'MEDIUM'}" class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 px-3 py-1 fw-800 small">SUSPICIOUS_VECTOR</span>
+                                            <span th:if="${scan.riskLevel == 'HIGH'}" class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-3 py-1 fw-800 small">THREAT_IDENTIFIED</span>
+                                        </td>
+                                    </tr>
+                                    <tr th:if="${#lists.isEmpty(scans)}">
+                                        <td colspan="4" class="text-center py-5 text-muted mono">AWAITING_INITIAL_PULSE...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -270,13 +291,15 @@
             }, 3500);
 
             setTimeout(() => {
-                addLog('SCAN_COMPLETE. No malicious vectors identified.');
+                addLog('SCAN_COMPLETE. Persisting results to secure vault...');
                 scanLine.style.display = 'none';
                 scanResult.style.display = 'block';
-                scanStatus.innerText = 'STATION_SECURE';
-                scanStatus.classList.replace('text-primary', 'text-emerald');
-                startBtn.disabled = false;
-                startBtn.innerHTML = '<i class="bi bi-radar me-2"></i> INITIALIZE_PULSE';
+                scanStatus.innerText = 'SYNCING_DATA';
+                
+                // Real submission after animation
+                setTimeout(() => {
+                    scanForm.submit();
+                }, 1500);
             }, 5000);
         };
     </script>

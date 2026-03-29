@@ -110,7 +110,15 @@ public class PageController {
     }
 
     @PostMapping("/threat-scan")
-    public String performScan() {
+    public String performScan(String targetIp) {
+        if (targetIp != null && !targetIp.isEmpty()) {
+            com.enterprise.fraudintel.entity.ScanResult result = new com.enterprise.fraudintel.entity.ScanResult();
+            result.setPayload(targetIp);
+            result.setRiskScore(Math.random() * 10);
+            result.setRiskLevel(result.getRiskScore() > 7 ? "HIGH" : (result.getRiskScore() > 3 ? "MEDIUM" : "LOW"));
+            result.setSocialMediaSentiment("NEUTRAL");
+            scanResultRepository.save(result);
+        }
         return "redirect:/threat-scan";
     }
 }
