@@ -74,7 +74,7 @@ public class ScanController {
             List<Map<String, Object>> phases = new ArrayList<>();
             Map<String, Object> errorPhase = new HashMap<>();
             errorPhase.put("name", "Engine Fault");
-            errorPhase.put("findings", List.of("✗ CRITICAL: " + e.getMessage()));
+            errorPhase.put("findings", Arrays.asList("✗ CRITICAL: " + e.getMessage()));
             errorPhase.put("durationMs", 0);
             phases.add(errorPhase);
             errorResponse.put("phases", phases);

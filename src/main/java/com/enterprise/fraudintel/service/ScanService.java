@@ -62,7 +62,6 @@ public class ScanService {
     private static final int READ_TIMEOUT_MS = 4000;
     private static final int MAX_CONTENT_BYTES = 512_000;
 
-    // Helper for realistic "Deep Search" wait times
     private void simulateProcessing(int ms) {
         try { Thread.sleep(ms); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
@@ -90,7 +89,7 @@ public class ScanService {
         try {
             Path root = Paths.get("").toAbsolutePath();
             try (Stream<Path> stream = Files.walk(root, 5)) {
-                List<Path> files = stream.filter(Files::isRegularFile).limit(500).toList();
+                List<Path> files = stream.filter(Files::isRegularFile).limit(500).collect(Collectors.toList());
                 p1Findings.add("✓ Indexed " + files.size() + " local nodes for structural integrity audit");
                 for (Path file : files) {
                     String fileName = file.getFileName().toString().toLowerCase();
@@ -112,7 +111,7 @@ public class ScanService {
             Path src = Paths.get("src").toAbsolutePath();
             if (Files.exists(src)) {
                 try (Stream<Path> stream = Files.walk(src, 10)) {
-                    List<Path> sourceFiles = stream.filter(Files::isRegularFile).limit(100).toList();
+                    List<Path> sourceFiles = stream.filter(Files::isRegularFile).limit(100).collect(Collectors.toList());
                     for (Path file : sourceFiles) {
                         try {
                             String content = Files.readString(file).toLowerCase();
@@ -142,7 +141,6 @@ public class ScanService {
         List<String> findings = new ArrayList<>();
         List<Map<String, Object>> phases = new ArrayList<>();
 
-        // PHASE 1: URL SURFACE
         long p1Start = System.currentTimeMillis();
         List<String> p1Findings = new ArrayList<>();
         p1Findings.add("○ Probing URL syntax...");
@@ -159,7 +157,6 @@ public class ScanService {
         phases.add(buildPhase("URL Surface Analysis", p1Findings, System.currentTimeMillis() - p1Start));
         findings.addAll(p1Findings);
 
-        // PHASE 2: DOMAIN INTEL
         long p2Start = System.currentTimeMillis();
         List<String> p2Findings = new ArrayList<>();
         p2Findings.add("○ Performing DNS reputation handshake...");
@@ -174,7 +171,6 @@ public class ScanService {
                 String tld = parts[parts.length-1];
                 if (SUSPICIOUS_TLDS.contains(tld)) { totalScore += 25.0; p2Findings.add("✗ High-risk TLD (." + tld + ")"); }
                 
-                // FIXED BRAND CHECK: Exclude official domains from brand impersonation flags
                 for (String b : SOCIAL_MEDIA_BRANDS) {
                     if (host.contains(b)) {
                         boolean isOfficial = host.equals(b + ".com") || host.endsWith("." + b + ".com") || host.equals("www." + b + ".com");
@@ -193,7 +189,6 @@ public class ScanService {
         phases.add(buildPhase("Domain Intelligence", p2Findings, System.currentTimeMillis() - p2Start));
         findings.addAll(p2Findings);
 
-        // PHASE 3: SSL/TLS
         long p3Start = System.currentTimeMillis();
         List<String> p3Findings = new ArrayList<>();
         p3Findings.add("○ Retrieving TLS handshakes...");
@@ -217,7 +212,6 @@ public class ScanService {
         phases.add(buildPhase("SSL/TLS Analysis", p3Findings, System.currentTimeMillis() - p3Start));
         findings.addAll(p3Findings);
 
-        // PHASE 4: CONTENT ANALYSIS
         long p4Start = System.currentTimeMillis();
         List<String> p4Findings = new ArrayList<>();
         p4Findings.add("○ Reconstructing remote source tree...");
@@ -269,7 +263,7 @@ public class ScanService {
 
     private void applyMitigationRules(String action, String url, String reason) {
         if (ruleRepository == null || auditLogRepository == null) return;
-        List<MitigationRule> active = ruleRepository.findAll().stream().filter(MitigationRule::isEnabled).filter(r -> r.getAction() != null && r.getAction().equalsIgnoreCase(action)).toList();
+        List<MitigationRule> active = ruleRepository.findAll().stream().filter(MitigationRule::isEnabled).filter(r -> r.getAction() != null && r.getAction().equalsIgnoreCase(action)).collect(Collectors.toList());
         if (!active.isEmpty()) { AuditLog l = new AuditLog(); l.setAction(action); l.setPerformedBy("VORTEX-CORE"); l.setDetails(reason + " | Target: " + url); auditLogRepository.save(l); }
     }
 
